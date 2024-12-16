@@ -4,6 +4,7 @@ import json
 import shutil
 from pathlib import Path
 import logging
+import base64
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,25 @@ def get_user_input(prompt):
     """Get user input with option to skip"""
     return input(f"{prompt} (press Enter to skip): ").strip()
 
+def get_base64_cookies():
+    """Get base64 encoded cookies and decode them"""
+    logger.info("Please enter your Twitter cookies as a base64 encoded string (press Enter to skip)")
+    logger.info("Tip: Use a base64 encoder to convert your cookies JSON to base64 first")
+
+    encoded_cookies = input("Base64 Twitter Cookies: ").strip()
+    if not encoded_cookies:
+        return ""
+
+    try:
+        decoded_cookies = base64.b64decode(encoded_cookies).decode('utf-8')
+        # Validate that it's a valid JSON string
+        json.loads(decoded_cookies)
+        return decoded_cookies
+    except Exception as e:
+        logger.error(f"Failed to decode cookies: {e}")
+        logger.info("Continuing with empty cookies...")
+        return ""
+
 def modify_package_json(eliza_path):
     """Add trading assistant plugin to agent's package.json"""
     package_json_path = os.path.join(eliza_path, "agent", "package.json")
@@ -61,7 +81,6 @@ def modify_package_json(eliza_path):
 
 def create_character_file(eliza_path, plugin_root):
     """Copy and update the character file with user inputs"""
-    # Read the existing character file
     character_file_path = os.path.join(plugin_root, "characters", "quantai.character.json")
 
     try:
@@ -77,7 +96,7 @@ def create_character_file(eliza_path, plugin_root):
         character_data["settings"]["TWITTER_USERNAME"] = get_user_input("Twitter Username")
         character_data["settings"]["TWITTER_PASSWORD"] = get_user_input("Twitter Password")
         character_data["settings"]["TWITTER_EMAIL"] = get_user_input("Twitter Email")
-        character_data["settings"]["TWITTER_COOKIES"] = get_user_input("Twitter Cookies")
+        character_data["settings"]["TWITTER_COOKIES"] = get_base64_cookies()
 
         # Create characters directory in eliza root
         characters_dir = os.path.join(eliza_path, "characters")
