@@ -96,10 +96,11 @@ def create_character_file(eliza_path, plugin_root):
 
 def main():
     try:
-        # Clone Eliza repository
+        # Clone Eliza repository if not already cloned
         logger.info("Cloning Eliza repository...")
-        if not run_command("git clone https://github.com/ai16z/eliza.git"):
-            return
+        if not os.path.exists("eliza"):
+            if not run_command("git clone https://github.com/ai16z/eliza.git"):
+                return
 
         eliza_path = os.path.abspath("eliza")
         plugin_path = os.path.join(eliza_path, "packages", "plugin-trading-assistant")
