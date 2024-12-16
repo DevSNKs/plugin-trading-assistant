@@ -99,8 +99,41 @@ def main():
         # Create plugin directory and copy files
         logger.info("Setting up trading assistant plugin...")
         os.makedirs(plugin_path, exist_ok=True)
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        shutil.copytree(current_dir, plugin_path, dirs_exist_ok=True)
+
+        # Get the plugin root directory (parent of install directory)
+        current_dir = os.path.dirname(os.path.abspath(__file__))  # install directory
+        plugin_root = os.path.dirname(current_dir)  # parent directory
+
+        # Define items to exclude from copying
+        exclude_patterns = [
+            'eliza',  # exclude cloned eliza directory
+            '__pycache__',
+            '*.pyc',
+            '.git',
+            'node_modules'
+        ]
+
+        def ignore_patterns(path, names):
+            ignored = set()
+            for pattern in exclude_patterns:
+                for name in names:
+                    if pattern in name or (pattern.startswith('*') and name.endswith(pattern[1:])):
+                        ignored.add(name)
+            return ignored
+
+        # Copy plugin files
+        for item in os.listdir(plugin_root):
+            src = os.path.join(plugin_root, item)
+            dst = os.path.join(plugin_path, item)
+
+            # Skip excluded items
+            if any(pattern in item for pattern in exclude_patterns):
+                continue
+
+            if os.path.isdir(src):
+                shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_patterns)
+            else:
+                shutil.copy2(src, dst)
 
         # Modify package.json
         logger.info("Modifying package.json...")
