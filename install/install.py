@@ -110,7 +110,7 @@ def main():
         # Replace index.ts with backup
         logger.info("Updating index.ts...")
         shutil.copy2(
-            os.path.join(current_dir, "install", "index.ts.backup"),
+            os.path.join(current_dir, "index.ts.backup"),
             os.path.join(eliza_path, "agent", "src", "index.ts")
         )
 
