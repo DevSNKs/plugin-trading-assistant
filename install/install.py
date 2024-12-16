@@ -59,32 +59,40 @@ def modify_package_json(eliza_path):
         logger.error(f"Failed to modify package.json: {e}")
         return False
 
-def create_character_file(plugin_path):
-    """Create and populate the character file"""
-    character_data = {
-        "name": "QuantAI",
-        "username": "QuantAI",
-        "description": "A trading assistant AI",
-        "modelProvider": "openai",
-        "clients": ["telegram", "twitter"],
-        "settings": {
-            "secrets": {
-                "TRADING_DB_URL": get_postgres_url(),
-                "OPENAI_API_KEY": get_user_input("OpenAI API Key"),
-                "TELEGRAM_BOT_TOKEN": get_user_input("Telegram Bot Token"),
-                "TWITTER_USERNAME": get_user_input("Twitter Username"),
-                "TWITTER_PASSWORD": get_user_input("Twitter Password"),
-                "TWITTER_EMAIL": get_user_input("Twitter Email"),
-                "TWITTER_COOKIES": get_user_input("Twitter Cookies")
-            }
-        }
-    }
+def create_character_file(eliza_path, plugin_root):
+    """Copy and update the character file with user inputs"""
+    # Read the existing character file
+    character_file_path = os.path.join(plugin_root, "characters", "quantai.character.json")
 
-    characters_dir = os.path.join(plugin_path, "characters")
-    os.makedirs(characters_dir, exist_ok=True)
+    try:
+        with open(character_file_path, 'r') as f:
+            character_data = json.load(f)
 
-    with open(os.path.join(characters_dir, "quantai.character.json"), 'w') as f:
-        json.dump(character_data, f, indent=4)
+        # Update the secrets with user input
+        character_data["settings"]["secrets"]["TRADING_DB_URL"] = get_postgres_url()
+        character_data["settings"]["secrets"]["OPENAI_API_KEY"] = get_user_input("OpenAI API Key")
+        character_data["settings"]["secrets"]["TELEGRAM_BOT_TOKEN"] = get_user_input("Telegram Bot Token")
+
+        # Update Twitter settings
+        character_data["settings"]["TWITTER_USERNAME"] = get_user_input("Twitter Username")
+        character_data["settings"]["TWITTER_PASSWORD"] = get_user_input("Twitter Password")
+        character_data["settings"]["TWITTER_EMAIL"] = get_user_input("Twitter Email")
+        character_data["settings"]["TWITTER_COOKIES"] = get_user_input("Twitter Cookies")
+
+        # Create characters directory in eliza root
+        characters_dir = os.path.join(eliza_path, "characters")
+        os.makedirs(characters_dir, exist_ok=True)
+
+        # Save the updated character file
+        output_path = os.path.join(characters_dir, "quantai.character.json")
+        with open(output_path, 'w') as f:
+            json.dump(character_data, f, indent=4)
+
+        logger.info(f"Character file created at {output_path}")
+
+    except Exception as e:
+        logger.error(f"Failed to create character file: {e}")
+        raise
 
 def main():
     try:
@@ -149,7 +157,7 @@ def main():
 
         # Create character file
         logger.info("Creating character file...")
-        create_character_file(plugin_path)
+        create_character_file(eliza_path, plugin_root)
 
         # Install dependencies and build
         logger.info("Installing dependencies and building project...")
