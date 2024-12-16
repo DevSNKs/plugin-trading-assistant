@@ -52,8 +52,8 @@ def get_base64_cookies():
 
     try:
         decoded_cookies = base64.b64decode(encoded_cookies).decode('utf-8')
-        # Validate that it's a valid JSON string
-        json.loads(decoded_cookies)
+        # Validate that it's a valid JSON string removing escape characters
+        json.loads(decoded_cookies.replace("\\", ""))
         return decoded_cookies
     except Exception as e:
         logger.error(f"Failed to decode cookies: {e}")
