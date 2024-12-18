@@ -181,7 +181,9 @@ def main():
 
         # Install dependencies and build
         logger.info("Installing dependencies and building project...")
-        if not run_command("pnpm install && pnpm build", cwd=eliza_path):
+        # Check out to the a specific release
+        release_tag = "v0.1.6-alpha.4"
+        if not run_command(f"git checkout {release_tag} && pnpm install --no-frozen-lockfile && pnpm build", cwd=eliza_path):
             return
 
         logger.info("""
